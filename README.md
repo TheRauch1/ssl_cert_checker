@@ -1,6 +1,6 @@
-# Project Name
+# ssl_checker
 
-A brief description of what this project does.
+A simple Python script to check SSL certificates for a list of domains and send notifications to Discord via a webhook if the certificate is about to expire.
 
 ## Installation
 

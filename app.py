@@ -22,7 +22,14 @@ logging.info('Started')
 def check_ssl_expiry(domain):
     context = ssl.create_default_context()
     conn = context.wrap_socket(socket.socket(socket.AF_INET), server_hostname=domain)
-    conn.connect((domain, 443))
+    try: 
+        conn.connect((domain, 443))
+    except ssl.SSLCertVerificationError:
+        logging.error(f"SSL certificate for '{domain}' is already expired or invalid")
+        days_to_expiry = 0
+        expiry_date = datetime.utcnow()
+        return days_to_expiry, expiry_date
+    
     ssl_info = conn.getpeercert()
     conn.close()
 
@@ -41,6 +48,10 @@ def check_ssl_expiry(domain):
 
 def send_discord_message(webhook_url, message):
     payload = {"content": message}
+    if not webhook_url:
+        logging.error("No webhook URL provided")
+        logging.info(payload)
+        return
     response = requests.post(webhook_url, json=payload)
     response.raise_for_status()
 
@@ -57,8 +68,11 @@ def job():
 
 
 if __name__ == "__main__":
-    domains = os.environ["DOMAINS"].split(",")
-    webhook_url = os.environ["WEBHOOK_URL"]
+    domains = os.environ["DOMAINS"].split(",") if os.environ.get("DOMAINS") else ["google.com", "expired.badssl.com"]
+    webhook_url = os.environ["WEBHOOK_URL"] if os.environ.get("WEBHOOK_URL") else None
+    if not webhook_url:
+        os.environ.setdefault("ENV", "dev")
+    dev_time = os.environ.get("DEV_TIME") if os.environ.get("DEV_TIME") else None
 
     logging.info(f"Log level: {log_level}")
     logging.info(f"Domains: {domains}")
@@ -69,9 +83,9 @@ if __name__ == "__main__":
         schedule.every().day.at("12:00").do(
             job
         )  # Schedule the job function if not in dev environment
-        schedule.every().day.at("14:16").do(
+        schedule.every().day.at(dev_time).do(
             job
-        )  # Schedule the job function if not in dev environment
+        )
 
         while True:
             schedule.run_pending()

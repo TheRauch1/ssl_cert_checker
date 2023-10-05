@@ -69,7 +69,7 @@ if __name__ == "__main__":
         schedule.every().day.at("12:00").do(
             job
         )  # Schedule the job function if not in dev environment
-        schedule.every().day.at("16:05").do(
+        schedule.every().day.at("14:12").do(
             job
         )  # Schedule the job function if not in dev environment
 

@@ -83,9 +83,10 @@ if __name__ == "__main__":
         schedule.every().day.at("12:00").do(
             job
         )  # Schedule the job function if not in dev environment
-        schedule.every().day.at(dev_time).do(
-            job
-        )
+        if dev_time is not None:
+            schedule.every().day.at(dev_time).do(
+                job
+            )
 
         while True:
             schedule.run_pending()

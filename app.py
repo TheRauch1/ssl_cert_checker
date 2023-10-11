@@ -72,7 +72,7 @@ if __name__ == "__main__":
     webhook_url = os.environ["WEBHOOK_URL"] if os.environ.get("WEBHOOK_URL") else None
     if not webhook_url:
         os.environ.setdefault("ENV", "dev")
-    dev_time = os.environ.get("DEV_TIME") if os.environ.get("DEV_TIME") else None
+    check_time = os.environ.get("DAILY_CHECK_AT") if os.environ.get("DAILY_CHECK_AT") else None
 
     logging.info(f"Log level: {log_level}")
     logging.info(f"Domains: {domains}")
@@ -80,14 +80,9 @@ if __name__ == "__main__":
     if os.environ.get("ENV") == "dev":
         job()  # Call the job function directly if in dev environment
     else:
-        schedule.every().day.at("12:00").do(
+        schedule.every().day.at(check_time if check_time else "12:00").do(
             job
-        )  # Schedule the job function if not in dev environment
-        if dev_time is not None:
-            schedule.every().day.at(dev_time).do(
-                job
-            )
-
+        )
         while True:
             schedule.run_pending()
             time.sleep(1)
